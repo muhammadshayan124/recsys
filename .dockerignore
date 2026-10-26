@@ -1,6 +1,7 @@
 .venv
 .git
-data
+data/*
+!data/ml-1m.zip
 artifacts
 results/_final_results.pkl
 __pycache__

@@ -149,8 +149,8 @@ curl -s localhost:8000/recommend -H 'content-type: application/json' \
 returns nearest items in the item tower's space. Scoring is an exact matrix product: with a
 3.7k-item catalogue that is far below a millisecond, so there is deliberately no ANN index; one is
 worth adding when the catalogue is in the hundreds of thousands. The model is built from the
-official download at image build time (`docker build -t recsys .`), because the dataset cannot be
-redistributed.
+official download (`recsys fetch`, then `docker build -t recsys .`; the archive is copied into the build stage and
+checked against a pinned SHA-256), because the dataset cannot be redistributed.
 
 ## Limitations
 
@@ -168,7 +168,8 @@ redistributed.
 ## Run it
 
 ```bash
-pip install --extra-index-url https://download.pytorch.org/whl/cpu -e ".[dev]"
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # CPU build
+pip install -e ".[dev]"
 pytest                    # protocol, leakage and API tests
 recsys fetch
 recsys tune               # about 50 minutes on 4 CPU cores

@@ -24,6 +24,7 @@ import scipy.sparse as sp
 
 URL = "https://files.grouplens.org/datasets/movielens/ml-1m.zip"
 MD5 = "c4d9eecfca2ab87c1945afe126590906"  # published at URL + ".md5"
+SHA256 = "a6898adb50b9ca05aa231689da44c217cb524e7ebd39d264c56e2832f2c54e20"  # pinned when this repo was written
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 POSITIVE = 4  # a rating >= 4 counts as "liked"
 MIN_HISTORY = 5  # users need this many earlier positives to be evaluated (cold users are reported, not hidden)
@@ -38,11 +39,16 @@ def fetch(dest: Path = DATA_DIR / "ml-1m.zip") -> Path:
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     blob = httpx.get(URL, timeout=120, follow_redirects=True).raise_for_status().content
-    got = hashlib.md5(blob).hexdigest()  # noqa: S324 - integrity check against the published checksum, not security
-    if got != MD5:
-        raise ValueError(f"checksum mismatch: expected {MD5}, got {got}")
+    _check(blob)
     dest.write_bytes(blob)
     return dest
+
+
+def _check(blob: bytes) -> None:
+    if hashlib.sha256(blob).hexdigest() != SHA256:
+        raise ValueError("SHA-256 mismatch: this is not the MovieLens-1M archive the repo was written against")
+    if hashlib.md5(blob).hexdigest() != MD5:  # noqa: S324 - cross-check against the vendor's published checksum
+        raise ValueError("MD5 does not match GroupLens' published checksum")
 
 
 @dataclass
@@ -53,6 +59,7 @@ class Raw:
 
 
 def load_raw(path: Path = DATA_DIR / "ml-1m.zip") -> Raw:
+    _check(Path(path).read_bytes())  # the archive on disk must be the pinned one, however it got there
     with zipfile.ZipFile(path) as z:
         def read(name, cols):
             with z.open(f"ml-1m/{name}") as f:
