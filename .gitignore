@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+# MovieLens is licensed for research use and must not be redistributed
+data/
+artifacts/
+results/_final_results.pkl
